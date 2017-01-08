@@ -1,6 +1,6 @@
 {
   "name": "wormhole-rpc",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "A flexible and extendable rpc proxy for node processes and browsers.",
   "main": "Wormhole.js",
   "scripts": {
@@ -8,6 +8,7 @@
   },
   "author": "",
   "license": "ISC",
+  "readme": "README.md",
   "dependencies": {
     "sockjs": "^0.3.18",
     "sockjs-client": "^1.1.1",
