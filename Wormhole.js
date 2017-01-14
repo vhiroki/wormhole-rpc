@@ -67,13 +67,7 @@ class Wormhole {
         const method = this.localMethods[name];
 
         if (typeof method === 'function') {
-            return (new Promise((resolve, reject) => {
-                try {
-                    resolve(method(...params));
-                } catch(e) {
-                    reject((e && e.message) || e);
-                }
-            }))
+            return Promise.resolve(method(...params))
                 .then((result) => {
                     this.write({
                         type: 'method_callback',
@@ -85,14 +79,16 @@ class Wormhole {
                     });
                 })
                 .catch((error) => {
+                    const normalizedError = (error && (error.stack || error));
                     this.write({
                         type: 'method_callback',
                         payload: {
                             callbackId: callbackId,
                             error: true,
-                            data: error
+                            data: normalizedError
                         }
                     });
+                    console.error(normalizedError);
                 });
         }
 

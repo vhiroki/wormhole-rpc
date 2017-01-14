@@ -1,14 +1,18 @@
 {
   "name": "wormhole-rpc",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "A flexible and extendable rpc proxy for node processes and browsers.",
   "main": "Wormhole.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
   "license": "ISC",
   "readme": "README.md",
+  "keywords" : ["rpc", "websockets", "IPC", "api", "communication", "socket"],
+  "repository" : {
+    "type" : "git",
+    "url" : "https://github.com/vhiroki/wormhole-rpc"
+  },
   "dependencies": {
     "sockjs": "^0.3.18",
     "sockjs-client": "^1.1.1",
