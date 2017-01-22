@@ -15,7 +15,8 @@ module.exports = {
             _ref$wsPort = _ref.wsPort,
             wsPort = _ref$wsPort === undefined ? 3000 : _ref$wsPort,
             _ref$wsBindAddress = _ref.wsBindAddress,
-            wsBindAddress = _ref$wsBindAddress === undefined ? '0.0.0.0' : _ref$wsBindAddress;
+            wsBindAddress = _ref$wsBindAddress === undefined ? '0.0.0.0' : _ref$wsBindAddress,
+            onNewClient = _ref.onNewClient;
 
         return new Promise(function (resolve, reject) {
             var echo = sockjs.createServer();
@@ -26,10 +27,19 @@ module.exports = {
                     name: 'server',
                     write: function write(message) {
                         conn.write(JSON.stringify(message));
-                    }
+                    },
+                    onHandshakeEnd: function onHandshakeEnd(wormhole) {
+                        onNewClient && onNewClient({
+                            methods: wormhole.remoteMethods,
+                            publish: wormhole.publish.bind(wormhole),
+                            subscribe: wormhole.subscribe.bind(wormhole)
+                        });
+                    },
+
+                    exposedMethods: apiToExpose
                 });
 
-                wormhole.expose(apiToExpose);
+                wormhole.startHandshake();
 
                 conn.on('data', function (message) {
                     wormhole.onMessage(JSON.parse(message));
