@@ -16,7 +16,8 @@ module.exports = {
             wsPort = _ref$wsPort === undefined ? 3000 : _ref$wsPort,
             _ref$wsBindAddress = _ref.wsBindAddress,
             wsBindAddress = _ref$wsBindAddress === undefined ? '0.0.0.0' : _ref$wsBindAddress,
-            onNewClient = _ref.onNewClient;
+            onNewClient = _ref.onNewClient,
+            onClientDisconnect = _ref.onClientDisconnect;
 
         return new Promise(function (resolve, reject) {
             var echo = sockjs.createServer();
@@ -30,6 +31,7 @@ module.exports = {
                     },
                     onHandshakeEnd: function onHandshakeEnd(wormhole) {
                         onNewClient && onNewClient({
+                            connection: conn,
                             methods: wormhole.remoteMethods,
                             publish: wormhole.publish.bind(wormhole),
                             subscribe: wormhole.subscribe.bind(wormhole)
@@ -45,7 +47,9 @@ module.exports = {
                     wormhole.onMessage(JSON.parse(message));
                 });
 
-                conn.on('close', function () {});
+                conn.on('close', function () {
+                    onClientDisconnect && onClientDisconnect({ connection: conn });
+                });
             });
 
             echo.installHandlers(httpServer, { prefix: wsUrlPrefix });

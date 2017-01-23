@@ -13,12 +13,8 @@ module.exports = {
             wsUrl = _ref$wsUrl === undefined ? 'http://localhost:3000/ws' : _ref$wsUrl;
 
         return new Promise(function (resolve, reject) {
-            var sock = new SockJS(wsUrl);
             var wormhole = new Wormhole({
                 name: name,
-                write: function write(message) {
-                    sock.send(JSON.stringify(message));
-                },
                 onHandshakeEnd: function onHandshakeEnd(wormhole) {
                     resolve({
                         methods: wormhole.remoteMethods,
@@ -30,13 +26,28 @@ module.exports = {
                 exposedMethods: apiToExpose
             });
 
-            sock.onopen = function () {
-                wormhole.startHandshake();
-            };
-            sock.onmessage = function (message) {
-                wormhole.onMessage(JSON.parse(message.data));
-            };
-            sock.onclose = function () {};
+            newConnection(wormhole);
+
+            function newConnection(wormhole) {
+                var sock = new SockJS(wsUrl);
+
+                wormhole.write = function (message) {
+                    sock.send(JSON.stringify(message));
+                };
+
+                sock.onopen = function () {
+                    console.info('[wormhole-rpc] Websocket client has connected successfully!');
+                    wormhole.startHandshake();
+                };
+                sock.onmessage = function (message) {
+                    wormhole.onMessage(JSON.parse(message.data));
+                };
+                sock.onclose = function () {
+                    console.warn('[wormhole-rpc] Websocket client has disconnected');
+                    console.warn('[wormhole-rpc] Reconnecting...');
+                    newConnection(wormhole);
+                };
+            }
         });
     }
 };
