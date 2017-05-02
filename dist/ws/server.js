@@ -1,8 +1,6 @@
 'use strict';
 
-var http = require('http');
-var sockjs = require('sockjs');
-
+var SocketIO = require('socket.io');
 var Wormhole = require('../Wormhole');
 
 module.exports = {
@@ -20,18 +18,19 @@ module.exports = {
             onClientDisconnect = _ref.onClientDisconnect;
 
         return new Promise(function (resolve, reject) {
-            var echo = sockjs.createServer();
-            httpServer = httpServer || http.createServer();
+            var io = SocketIO({
+                path: wsUrlPrefix
+            });
 
-            echo.on('connection', function (conn) {
+            io.on('connect', function (socket) {
                 var wormhole = new Wormhole({
                     name: 'server',
                     write: function write(message) {
-                        conn.write(JSON.stringify(message));
+                        socket.emit('message', message);
                     },
                     onHandshakeEnd: function onHandshakeEnd(wormhole) {
                         onNewClient && onNewClient({
-                            connection: conn,
+                            connection: ws,
                             methods: wormhole.remoteMethods,
                             publish: wormhole.publish.bind(wormhole),
                             subscribe: wormhole.subscribe.bind(wormhole)
@@ -43,18 +42,16 @@ module.exports = {
 
                 wormhole.startHandshake();
 
-                conn.on('data', function (message) {
-                    wormhole.onMessage(JSON.parse(message));
+                socket.on('message', function (message) {
+                    wormhole.onMessage(message);
                 });
 
-                conn.on('close', function () {
-                    onClientDisconnect && onClientDisconnect({ connection: conn });
+                socket.on('disconnect', function () {
+                    onClientDisconnect && onClientDisconnect({ connection: ws });
                 });
             });
 
-            echo.installHandlers(httpServer, { prefix: wsUrlPrefix });
-
-            httpServer.listen(wsPort, wsBindAddress, 511, resolve);
+            io.listen(wsPort, resolve);
         });
     }
 };
