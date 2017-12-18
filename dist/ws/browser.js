@@ -34,6 +34,7 @@ module.exports = {
                 var socket = io(wsUrl, { path: wsPath });
 
                 wormhole.write = function (message) {
+                    console.debug(message);
                     socket.emit('message', message);
                 };
 
@@ -43,6 +44,7 @@ module.exports = {
                 });
 
                 socket.on('message', function (message) {
+                    console.debug(message);
                     wormhole.onMessage(message);
                 });
 
